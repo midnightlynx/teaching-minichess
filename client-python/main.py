@@ -7,9 +7,12 @@ main_strName = "YOUR NAME"  # CHANGE THIS - REQUIRED
 
 ##########################################################
 
-exec(open("chess.py").read())
-
-exec(open("zeromq.py").read())
+try:
+    execfile('chess.py')  # Python 2.x
+    execfile('zeromq.py')
+except NameError:
+    exec(open('chess.py').read())  # Python 3.x
+    exec(open('zeromq.py').read())
 
 ##########################################################
 
