@@ -1,94 +1,40 @@
-import random
-
-
 ##########################################################
-class Board(object):
-    _turn = 1
-    _player = 'W'
-    _board = [
-        ['k', 'q', 'b', 'n', 'r'],
-        ['p', 'p', 'p', 'p', 'p'],
-        ['.', '.', '.', '.', '.'],
-        ['.', '.', '.', '.', '.'],
-        ['P', 'P', 'P', 'P', 'P'],
-        ['R', 'N', 'B', 'Q', 'K'],
-    ]
-    turn = None
-    player = None
-    board = None
 
-    def reset(self):
-        self.turn = self._turn
-        self.player = self._player
-        self.board = self._board
+from game_state import BoardState
 
-    def __init__(self):
-        self.reset()
+board_state = BoardState()
 
-    def get_board(self):
-        board_str = "\n".join([''.join([c for c in row]) for row in self.board])
-        return "{} {}\n{}\n".format(self.turn, self.player, board_str)
-
-    def set_board(self, board_str):
-        board = board_str.splitlines()
-        turn, self.player = board[0].split()
-        self.turn = int(turn)
-        self.board = [[c for c in row] for row in board[1:]]
-
-
-game_board = Board()
 
 def chess_reset():
-    game_board.reset()
+    board_state.reset()
 
 
 def chess_boardGet():
-    return game_board.get_board()
+    return board_state.get_board()
 
 
 def chess_boardSet(strIn):
-    game_board.set_board(strIn)
+    board_state.set_board(strIn)
 
 
 def chess_winner():
-    # determine the winner of the current state of the game and return '?' or '=' or 'W' or 'B' -
-    # note that we are returning a character and not a string
-
-    return '?'
+    return board_state.winner()
 
 
 def chess_isValid(intX, intY):
-    if intX < 0:
-        return False
-
-    elif intX > 4:
-        return False
-
-    if intY < 0:
-        return False
-
-    elif intY > 5:
-        return False
-
-    return True
+    return board_state.is_valid(intX, intY)
 
 
 def chess_isEnemy(strPiece):
-    if strPiece == '.':
-        return False
-    return (game_board.player == 'W') != (strPiece == strPiece.upper())
+    return board_state.is_enemy(strPiece)
 
 
 def chess_isOwn(strPiece):
-    if strPiece == '.':
-        return False
-    return (game_board.player == 'W') == (strPiece == strPiece.upper())
+    return board_state.is_own(strPiece)
 
 
 def chess_isNothing(strPiece):
-    if strPiece == '.':
-        return True
-    return False
+    return board_state.is_nothing(strPiece)
 
 
 def chess_eval():
@@ -102,17 +48,7 @@ def chess_moves():
     # with reference to the state of the game and return the possible moves - one example is given below -
     # note that a move has exactly 6 characters
 
-    strOut = []
-
-    strOut.append('a2-a3\n')
-    strOut.append('b2-b3\n')
-    strOut.append('c2-c3\n')
-    strOut.append('d2-d3\n')
-    strOut.append('e2-e3\n')
-    strOut.append('b1-a3\n')
-    strOut.append('b1-c3\n')
-
-    return strOut
+    return ['a2-a3\n', 'b2-b3\n', 'c2-c3\n', 'd2-d3\n', 'e2-e3\n', 'b1-a3\n', 'b1-c3\n']
 
 
 def chess_movesShuffled():

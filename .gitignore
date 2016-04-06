@@ -1,1 +1,6 @@
 /.project
+*.pyc
+# compiled framework
+framework/framework
+# IDE settings
+.idea/
