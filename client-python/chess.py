@@ -2,35 +2,52 @@ import random
 
 
 ##########################################################
+class Board(object):
+    _turn = 1
+    _player = 'W'
+    _board = [
+        ['k', 'q', 'b', 'n', 'r'],
+        ['p', 'p', 'p', 'p', 'p'],
+        ['.', '.', '.', '.', '.'],
+        ['.', '.', '.', '.', '.'],
+        ['P', 'P', 'P', 'P', 'P'],
+        ['R', 'N', 'B', 'Q', 'K'],
+    ]
+    turn = None
+    player = None
+    board = None
+
+    def reset(self):
+        self.turn = self._turn
+        self.player = self._player
+        self.board = self._board
+
+    def __init__(self):
+        self.reset()
+
+    def get_board(self):
+        board_str = "\n".join([''.join([c for c in row]) for row in self.board])
+        return "{} {}\n{}\n".format(self.turn, self.player, board_str)
+
+    def set_board(self, board_str):
+        board = board_str.splitlines()
+        turn, self.player = board[0].split()
+        self.turn = int(turn)
+        self.board = [[c for c in row] for row in board[1:]]
+
+
+game_board = Board()
 
 def chess_reset():
-    # reset the state of the game / your internal variables -
-    # note that this function is highly dependent on your implementation
-
-    pass
+    game_board.reset()
 
 
 def chess_boardGet():
-    # return the state of the game - one example is given below - note that the state has exactly 40 or 41 characters
-
-    strOut = ''
-
-    strOut += '1 W\n'
-    strOut += 'kqbnr\n'
-    strOut += 'ppppp\n'
-    strOut += '.....\n'
-    strOut += '.....\n'
-    strOut += 'PPPPP\n'
-    strOut += 'RNBQK\n'
-
-    return strOut
+    return game_board.get_board()
 
 
 def chess_boardSet(strIn):
-    # read the state of the game from the provided argument and set your internal variables accordingly -
-    # note that the state has exactly 40 or 41 characters
-
-    pass
+    game_board.set_board(strIn)
 
 
 def chess_winner():
@@ -57,24 +74,20 @@ def chess_isValid(intX, intY):
 
 
 def chess_isEnemy(strPiece):
-    # with reference to the state of the game, return whether the provided argument
-    # is a piece from the side not on move -
-    # note that we could but should not use the other is() functions in here but probably
-
-    return False
+    if strPiece == '.':
+        return False
+    return (game_board.player == 'W') != (strPiece == strPiece.upper())
 
 
 def chess_isOwn(strPiece):
-    # with reference to the state of the game, return whether the provided argument is a piece from the side on move -
-    # note that we could but should not use the other is() functions in here but probably
-
-    return False
+    if strPiece == '.':
+        return False
+    return (game_board.player == 'W') == (strPiece == strPiece.upper())
 
 
 def chess_isNothing(strPiece):
-    # return whether the provided argument is not a piece / is an empty field -
-    # note that we could but should not use the other is() functions in here but probably
-
+    if strPiece == '.':
+        return True
     return False
 
 
