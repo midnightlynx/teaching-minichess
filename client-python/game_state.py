@@ -174,6 +174,9 @@ class BoardState(object):
         piece = self.board[y][x].lower()
         if piece == 'p':
             return self._pawn_moves(x, y)
+        if piece == 'k':
+            return self._king_moves(x, y)
+        return []
 
     def move_str(self, start, dest):
         return '{}-{}\n'.format(self.xy_to_alnum(*start), self.xy_to_alnum(*dest))
@@ -189,6 +192,19 @@ class BoardState(object):
             if self.is_valid(x + dx, y + dy) and self.is_enemy(self.get_piece(x + dx, y + dy)):
                 moves.append(self.move_str((x, y), (x + dx, y + dy)))
 
+        return moves
+
+    def _king_moves(self, x, y):
+        moves = []
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == dy == 0:  # not moving
+                    continue
+                elif not self.is_valid(x + dx, y + dy):  # off the board
+                    continue
+                elif not self.is_own(self.get_piece(x + dx, y + dy)):  # empty or take-able
+                    moves.append(self.move_str((x, y), (x + dx, y + dy)))
+        return moves
 
 PIECE_VALUES = {
     'p': 100,
