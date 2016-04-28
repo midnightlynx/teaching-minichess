@@ -180,6 +180,8 @@ class BoardState(object):
             return self._knight_moves(x, y)
         if piece == 'r':
             return self._rook_moves(x, y)
+        if piece == 'q':
+            return self._queen_moves(x, y)
         return []
 
     def move_str(self, start, dest):
@@ -222,16 +224,37 @@ class BoardState(object):
                 moves.append(self.move_str((x, y), (x + dx, y + dy)))
         return moves
 
+    def _extend_direction(self, x, y, dx, dy):
+        i = 1
+        while self.is_valid(x + (dx * i), y + (dy * i)):
+            yield i, self.get_piece(x + (dx * i), y + (dy * i))
+            i += 1
+
     def _rook_moves(self, x, y):
         coords = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         moves = []
 
         for dx, dy in coords:
-            i = 1
-            while self.is_valid(x+(dx*i), y+(dy*i)) and not self.is_own(self.get_piece(x+(dx*i), y+(dy*i))):
-                moves.append(self.move_str((x, y), (x+(dx*i), y+(dy*i))))
-                i += 1
+            for i, piece in self._extend_direction(x, y, dx, dy):
+                if not self.is_own(piece):
+                    moves.append(self.move_str((x, y), (x+(dx*i), y+(dy*i))))
+                else:
+                    break
         return moves
+
+    def _queen_moves(self, x, y):
+        moves = []
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == dy == 0:  # not moving
+                    continue
+                for i, piece in self._extend_direction(x, y, dx, dy):
+                    if self.is_own(piece):
+                        break
+                    else:
+                        moves.append(self.move_str((x, y), (x+(dx*i), y+(dy*i))))
+        return moves
+
 
 PIECE_VALUES = {
     'p': 100,
