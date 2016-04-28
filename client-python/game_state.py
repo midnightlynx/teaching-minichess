@@ -1,3 +1,4 @@
+from copy import deepcopy
 
 
 class BoardState(object):
@@ -7,6 +8,7 @@ class BoardState(object):
     _rows = '654321'
     _p_index = _turn = 0
     board = None
+    history = None
 
     @property
     def players(self):
@@ -63,6 +65,7 @@ class BoardState(object):
             ['P', 'P', 'P', 'P', 'P'],
             ['R', 'N', 'B', 'Q', 'K'],
         ]
+        self.history = []
 
     def __init__(self):
         self.reset()
@@ -73,6 +76,7 @@ class BoardState(object):
     def set_board(self, state_str):
         header, self.board_str = state_str.split('\n', 1)
         self.turn, self.player = header.split()
+        self.history = []
 
     def is_enemy(self, piece):
         return piece in PIECES[self.opponent]
@@ -146,6 +150,8 @@ class BoardState(object):
         elif e_y == 5 and piece == 'p':
             piece = 'q'
 
+        # Back up board state
+        self.history.append(deepcopy(self.board))
         # Set new piece positions, update board state
         self.set_piece(e_x, e_y, piece)
         self.set_piece(s_x, s_y, '.')
@@ -262,6 +268,10 @@ class BoardState(object):
                 moves.append(self.move_str((x, y), (x + dx, y + dy)))
 
         return moves
+
+    def undo(self):
+        if self.history:
+            self.board = self.history.pop()
 
 PIECE_VALUES = {
     'p': 100,

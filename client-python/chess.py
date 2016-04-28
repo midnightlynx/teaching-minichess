@@ -94,7 +94,4 @@ def chess_moveAlphabeta(intDepth, intDuration):
 
 
 def chess_undo():
-    # undo the last move and update the state of the game / your internal variables accordingly -
-    # note that you need to maintain an internal variable that keeps track of the previous history for this
-
-    pass
+    board_state.undo()
