@@ -1,4 +1,3 @@
-from copy import deepcopy
 from random import shuffle
 
 
@@ -158,8 +157,6 @@ class BoardState(object):
         self.player = self.opponent
         if self.player == 'W':
             self.turn += 1
-
-        return self.get_board()
 
     def moves(self):
         moves = []
