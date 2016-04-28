@@ -134,18 +134,16 @@ class BoardState(object):
         self.board[y][x] = piece
 
     def do_move(self, move_str):
+
+        # Verify legal move
+        assert move_str in self.moves()
+
+        # Parse move string for start/end coordinates
         start, finish = move_str.splitlines()[0].split('-')
-
-        # get start piece by coordinates
         s_x, s_y = self.alnum_to_xy(start)
-        assert self.is_valid(s_x, s_y)
-        piece = self.get_piece(s_x, s_y)
-        assert self.is_own(piece)
-
-        # sanity check end coordinates
         e_x, e_y = self.alnum_to_xy(finish)
-        assert self.is_valid(e_x, e_y)
-        assert not self.is_own(self.get_piece(e_x, e_y))
+
+        piece = self.get_piece(s_x, s_y)
 
         # Queenify pawns
         if e_y == 0 and piece == 'P':
@@ -240,6 +238,8 @@ class BoardState(object):
             for i, piece in self._extend_direction(x, y, dx, dy):
                 if not self.is_own(piece):
                     moves.append(self.move_str((x, y), (x+(dx*i), y+(dy*i))))
+                    if self.is_enemy(piece):
+                        break
                 else:
                     break
         return moves
@@ -259,6 +259,8 @@ class BoardState(object):
                     break
                 else:
                     moves.append(self.move_str((x, y), (x+(dx*i), y+(dy*i))))
+                    if self.is_enemy(piece):
+                        break
 
         for dx, dy in shifts:
             if self.is_valid(x + dx, y + dy) and self.is_nothing(self.get_piece(x + dx, y + dy)):
