@@ -1,28 +1,56 @@
 
 
 class BoardState(object):
-    cols = 'abcde'
-    rows = '654321'
-    _turn = 1
-    _player = 'W'
-    _board = [
-        'kqbnr',
-        'ppppp',
-        '.....',
-        '.....',
-        'PPPPP',
-        'RNBQK',
-    ]
-    _black_pieces = {'k', 'q', 'b', 'n', 'r', 'p'}
-    _white_pieces = {'P', 'R', 'N', 'B', 'Q', 'K'}
-    turn = player = board = black_pieces = white_pieces = None
+    # read-only internals
+    _players = ['W', 'B']
+    _cols = 'abcde'
+    _rows = '654321'
+    _p_index = _turn = 0
+    board = None
+
+    @property
+    def players(self):
+        return self._players
+
+    @property
+    def opponent(self):
+        return self.players[self._p_index - 1]
+
+    @property
+    def player(self):
+        return self.players[self._p_index]
+
+    @player.setter
+    def player(self, val):
+        self._p_index = self.players.index(val)
+
+    @property
+    def rows(self):
+        return self._rows
+
+    @property
+    def cols(self):
+        return self._cols
+
+    @property
+    def turn(self):
+        return self._turn
+
+    @turn.setter
+    def turn(self, val):
+        self._turn = int(val)
 
     def reset(self):
-        self.turn = self._turn
-        self.player = self._player
-        self.board = self._board
-        self.white_pieces = self._white_pieces
-        self.black_pieces = self._black_pieces
+        self._turn = 1
+        self._p_index = 0
+        self.board = [
+            'kqbnr',
+            'ppppp',
+            '.....',
+            '.....',
+            'PPPPP',
+            'RNBQK',
+        ]
 
     def __init__(self):
         self.reset()
@@ -33,23 +61,15 @@ class BoardState(object):
 
     def set_board(self, state_str):
         header, board_str = state_str.split('\n', 1)
-        turn, self.player = header.split()
-        self.turn = int(turn)
-
-        self.white_pieces = set([c for c in board_str if c in self._white_pieces])
-        self.black_pieces = set([c for c in board_str if c in self._black_pieces])
+        self.turn, self.player = header.split()
 
         self.board = board_str.splitlines()
 
     def is_enemy(self, piece):
-        if self.player == 'W':
-            return piece in self._black_pieces
-        return piece in self._white_pieces
+        return piece in PIECES[self.opponent]
 
     def is_own(self, piece):
-        if self.player == 'W':
-            return piece in self._white_pieces
-        return piece in self._black_pieces
+        return piece in PIECES[self.player]
 
     @staticmethod
     def is_nothing(piece):
@@ -58,12 +78,16 @@ class BoardState(object):
         return False
 
     def winner(self):
-        if 'K' not in self.white_pieces:
-            return 'B'
-        if 'k' not in self.black_pieces:
-            return 'W'
         if self.turn > 40:
             return '='
+
+        pieces = "".join(self.board)
+
+        if 'K' not in pieces:
+            return 'B'
+        if 'k' not in pieces:
+            return 'W'
+
         return '?'
 
     @staticmethod
@@ -71,6 +95,7 @@ class BoardState(object):
         return 0 <= x <= 4 and 0 <= y <= 5
 
     def eval(self):
+
         val = 0
         for row in self.board:
             for col in row:
@@ -80,6 +105,7 @@ class BoardState(object):
                     val -= PIECE_VALUES[col.lower()]
         return val
 
+
 PIECE_VALUES = {
     'p': 100,
     'b': 300,
@@ -87,4 +113,10 @@ PIECE_VALUES = {
     'r': 500,
     'q': 900,
     'k': 10000,
+}
+
+
+PIECES = {
+    'W': {'P', 'R', 'N', 'B', 'Q', 'K'},
+    'B': {'k', 'q', 'b', 'n', 'r', 'p'},
 }
