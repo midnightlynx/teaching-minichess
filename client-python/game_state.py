@@ -48,6 +48,10 @@ class BoardState(object):
     def board_str(self, val):
         self.board = [[c for c in r] for r in val.splitlines()]
 
+    @property
+    def _fwd_factor(self):
+        return -1 if self.player == 'W' else 1
+
     def reset(self):
         self._turn = 1
         self._p_index = 0
@@ -155,6 +159,35 @@ class BoardState(object):
         self.player = self.opponent
         if self.player == 'W':
             self.turn += 1
+
+        return self.get_board()
+
+    def moves(self):
+        moves = []
+        for y, row in enumerate(self.board):
+            for x, col in enumerate(row):
+                if self.is_own(col):
+                    moves.extend(self._moves_by_piece(x, y))
+        return moves
+
+    def _moves_by_piece(self, x, y):
+        piece = self.board[y][x].lower()
+        if piece == 'p':
+            return self._pawn_moves(x, y)
+
+    def move_str(self, start, dest):
+        return '{}-{}\n'.format(self.xy_to_alnum(*start), self.xy_to_alnum(*dest))
+
+    def _pawn_moves(self, x, y):
+        moves = []
+        dy = self._fwd_factor
+
+        if self.is_valid(x, y + dy) and self.is_nothing(self.get_piece(x, y + dy)):
+            moves.append(self.move_str((x, y), (x, y + dy)))
+
+        for dx in (-1, 1):
+            if self.is_valid(x + dx, y + dy) and self.is_enemy(self.get_piece(x + dx, y + dy)):
+                moves.append(self.move_str((x, y), (x + dx, y + dy)))
 
 
 PIECE_VALUES = {
