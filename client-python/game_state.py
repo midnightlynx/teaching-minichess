@@ -77,7 +77,6 @@ class BoardState(object):
     def set_board(self, state_str):
         header, self.board_str = state_str.split('\n', 1)
         self.turn, self.player = header.split()
-        self.history = []
 
     def is_enemy(self, piece):
         return piece in PIECES[self.opponent]
@@ -152,7 +151,7 @@ class BoardState(object):
             piece = 'q'
 
         # Back up board state
-        self.history.append(deepcopy(self.board))
+        self.history.append(self.get_board())
         # Set new piece positions, update board state
         self.set_piece(e_x, e_y, piece)
         self.set_piece(s_x, s_y, '.')
@@ -272,7 +271,7 @@ class BoardState(object):
 
     def undo(self):
         if self.history:
-            self.board = self.history.pop()
+            self.set_board(self.history.pop())
 
     def moves_shuffled(self):
         moves = self.moves()
