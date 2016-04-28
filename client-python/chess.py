@@ -55,7 +55,7 @@ def chess_movesShuffled():
 def chess_movesEvaluated():
     # with reference to the state of the game, determine the possible moves and sort them in order of an increasing evaluation score before returning them - note that you can call the chess_movesShuffled() function in here
 
-    return []
+    return board_state.evaluated_moves()
 
 
 def chess_move(strIn):

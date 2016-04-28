@@ -279,6 +279,17 @@ class BoardState(object):
         shuffle(moves)
         return moves
 
+    def evaluated_moves(self):
+        evaluated = []
+        moves = self.moves_shuffled()
+
+        for move in moves:
+            self.do_move(move)
+            evaluated.append((self.eval(), move))
+            self.undo()
+
+        return [m[1] for m in sorted(evaluated, key=lambda x: x[0])]
+
 
 PIECE_VALUES = {
     'p': 100,
