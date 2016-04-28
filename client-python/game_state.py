@@ -171,11 +171,13 @@ class BoardState(object):
         return moves
 
     def _moves_by_piece(self, x, y):
-        piece = self.board[y][x].lower()
+        piece = self.get_piece(x, y).lower()
         if piece == 'p':
             return self._pawn_moves(x, y)
         if piece == 'k':
             return self._king_moves(x, y)
+        if piece == 'n':
+            return self._knight_moves(x, y)
         return []
 
     def move_str(self, start, dest):
@@ -205,6 +207,19 @@ class BoardState(object):
                 elif not self.is_own(self.get_piece(x + dx, y + dy)):  # empty or take-able
                     moves.append(self.move_str((x, y), (x + dx, y + dy)))
         return moves
+
+    def _knight_moves(self, x, y):
+        coords = [
+            (1, 2), (1, -2), (-1, 2), (-1, -2),
+            (2, 1), (2, -1), (-2, 1), (-2, -1),
+        ]
+        moves = []
+
+        for dx, dy in coords:
+            if self.is_valid(x + dx, y + dy) and not self.is_own(self.get_piece(x + dx, y + dy)):
+                moves.append(self.move_str((x, y), (x + dx, y + dy)))
+        return moves
+
 
 PIECE_VALUES = {
     'p': 100,
