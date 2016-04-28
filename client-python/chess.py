@@ -49,10 +49,7 @@ def chess_moves():
 
 
 def chess_movesShuffled():
-    # with reference to the state of the game, determine the possible moves and shuffle them before returning them-
-    # note that you can call the chess_moves() function in here
-
-    return []
+    return board_state.moves_shuffled()
 
 
 def chess_movesEvaluated():

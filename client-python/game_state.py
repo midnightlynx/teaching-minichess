@@ -1,4 +1,5 @@
 from copy import deepcopy
+from random import shuffle
 
 
 class BoardState(object):
@@ -272,6 +273,12 @@ class BoardState(object):
     def undo(self):
         if self.history:
             self.board = self.history.pop()
+
+    def moves_shuffled(self):
+        moves = self.moves()
+        shuffle(moves)
+        return moves
+
 
 PIECE_VALUES = {
     'p': 100,
