@@ -38,10 +38,7 @@ def chess_isNothing(strPiece):
 
 
 def chess_eval():
-    # with reference to the state of the game, return the the evaluation score of the side on move -
-    # note that positive means an advantage while negative means a disadvantage
-
-    return 0
+    return board_state.eval()
 
 
 def chess_moves():

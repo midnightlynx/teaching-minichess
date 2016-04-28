@@ -69,3 +69,22 @@ class BoardState(object):
     @staticmethod
     def is_valid(x, y):
         return 0 <= x <= 4 and 0 <= y <= 5
+
+    def eval(self):
+        val = 0
+        for row in self.board:
+            for col in row:
+                if self.is_own(col):
+                    val += PIECE_VALUES[col.lower()]
+                elif self.is_enemy(col):
+                    val -= PIECE_VALUES[col.lower()]
+        return val
+
+PIECE_VALUES = {
+    'p': 100,
+    'b': 300,
+    'n': 300,
+    'r': 500,
+    'q': 900,
+    'k': 10000,
+}
