@@ -45,7 +45,7 @@ def chess_moves():
     # with reference to the state of the game and return the possible moves - one example is given below -
     # note that a move has exactly 6 characters
 
-    return ['a2-a3\n', 'b2-b3\n', 'c2-c3\n', 'd2-d3\n', 'e2-e3\n', 'b1-a3\n', 'b1-c3\n']
+    return board_state.moves()
 
 
 def chess_movesShuffled():
