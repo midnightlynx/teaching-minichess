@@ -178,6 +178,8 @@ class BoardState(object):
             return self._king_moves(x, y)
         if piece == 'n':
             return self._knight_moves(x, y)
+        if piece == 'r':
+            return self._rook_moves(x, y)
         return []
 
     def move_str(self, start, dest):
@@ -220,6 +222,16 @@ class BoardState(object):
                 moves.append(self.move_str((x, y), (x + dx, y + dy)))
         return moves
 
+    def _rook_moves(self, x, y):
+        coords = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        moves = []
+
+        for dx, dy in coords:
+            i = 1
+            while self.is_valid(x+(dx*i), y+(dy*i)) and not self.is_own(self.get_piece(x+(dx*i), y+(dy*i))):
+                moves.append(self.move_str((x, y), (x+(dx*i), y+(dy*i))))
+                i += 1
+        return moves
 
 PIECE_VALUES = {
     'p': 100,
