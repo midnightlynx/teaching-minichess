@@ -87,22 +87,17 @@ class BoardState(object):
         return False
 
     def winner(self):
+
+        kings = set([c for r in self.board for c in r])
+
+        if 'K' not in kings:
+            return 'B'
+        if 'k' not in kings:
+            return 'W'
+
         if self.turn > 40:
             return '='
 
-        kings = set()
-        for row in self.board:
-            for col in row:
-                if col == 'K':
-                    kings.add('W')
-                if col == 'k':
-                    kings.add('B')
-                if len(kings) >= 2:
-                    return '?'
-        if 'W' not in kings:
-            return 'B'
-        if 'B' not in kings:
-            return 'W'
         return '?'
 
     @staticmethod
