@@ -132,16 +132,24 @@ class BoardState(object):
     def do_move(self, move_str):
         start, finish = move_str.splitlines()[0].split('-')
 
+        # get start piece by coordinates
         s_x, s_y = self.alnum_to_xy(start)
         assert self.is_valid(s_x, s_y)
-
         piece = self.get_piece(s_x, s_y)
         assert self.is_own(piece)
 
+        # sanity check end coordinates
         e_x, e_y = self.alnum_to_xy(finish)
         assert self.is_valid(e_x, e_y)
         assert not self.is_own(self.get_piece(e_x, e_y))
 
+        # Queenify pawns
+        if e_y == 0 and piece == 'P':
+            piece = 'Q'
+        elif e_y == 5 and piece == 'p':
+            piece = 'q'
+
+        # Set new piece positions, update board state
         self.set_piece(e_x, e_y, piece)
         self.set_piece(s_x, s_y, '.')
         self.player = self.opponent
