@@ -62,10 +62,7 @@ def chess_movesEvaluated():
 
 
 def chess_move(strIn):
-    # perform the supplied move (for example 'a5-a4\n') and update the state of the game / your internal variables
-    # accordingly - note that it advised to do a sanity check of the supplied move
-
-    pass
+    board_state.do_move(strIn)
 
 
 def chess_moveRandom():
