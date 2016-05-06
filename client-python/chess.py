@@ -65,15 +65,13 @@ def chess_move(strIn):
 def chess_moveRandom():
     # perform a random move and return it - one example output is given below -
     # note that you can call the chess_movesShuffled() function as well as the chess_move() function in here
-
-    return 'a2-a3\n'
+    return board_state.move_random()
 
 
 def chess_moveGreedy():
     # perform a greedy move and return it - one example output is given below -
     # note that you can call the chess_movesEvaluated() function as well as the chess_move() function in here
-
-    return 'a2-a3\n'
+    return board_state.move_greedy()
 
 
 def chess_moveNegamax(intDepth, intDuration):

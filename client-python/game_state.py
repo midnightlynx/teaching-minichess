@@ -286,6 +286,15 @@ class BoardState(object):
 
         return [m[1] for m in sorted(evaluated, key=lambda x: x[0])]
 
+    def move_random(self):
+        move = self.moves_shuffled()[0]
+        self.do_move(move)
+        return move
+
+    def move_greedy(self):
+        move = self.evaluated_moves()[0]
+        self.do_move(move)
+        return move
 
 PIECE_VALUES = {
     'p': 100,
