@@ -1,5 +1,19 @@
 from random import shuffle
 
+PIECE_VALUES = {
+    'p': 100,
+    'b': 300,
+    'n': 300,
+    'r': 500,
+    'q': 900,
+    'k': 10000,
+}
+
+PIECES = {
+    'W': {'P', 'R', 'N', 'B', 'Q', 'K'},
+    'B': {'k', 'q', 'b', 'n', 'r', 'p'},
+}
+
 
 class BoardState(object):
     # read-only internals
@@ -51,7 +65,7 @@ class BoardState(object):
         self.board = [[c for c in r] for r in val.splitlines()]
 
     @property
-    def _fwd_factor(self):
+    def fwd_factor(self):
         return -1 if self.player == 'W' else 1
 
     def reset(self):
@@ -159,112 +173,13 @@ class BoardState(object):
             self.turn += 1
 
     def moves(self):
-        moves = []
+        moves = set()
+        finder = MoveFinder(self)
         for y, row in enumerate(self.board):
             for x, col in enumerate(row):
                 if self.is_own(col):
-                    moves.extend(self._moves_by_piece(x, y))
-        return moves
-
-    def _moves_by_piece(self, x, y):
-        piece = self.get_piece(x, y).lower()
-        if piece == 'p':
-            return self._pawn_moves(x, y)
-        if piece == 'k':
-            return self._king_moves(x, y)
-        if piece == 'n':
-            return self._knight_moves(x, y)
-        if piece == 'r':
-            return self._rook_moves(x, y)
-        if piece == 'q':
-            return self._queen_moves(x, y)
-        if piece == 'b':
-            return self._bishop_moves(x, y)
-        return []
-
-    def move_str(self, start, dest):
-        return '{}-{}\n'.format(self.xy_to_alnum(*start), self.xy_to_alnum(*dest))
-
-    def _pawn_moves(self, x, y):
-        moves = []
-        dy = self._fwd_factor
-
-        if self.is_valid(x, y + dy) and self.is_nothing(self.get_piece(x, y + dy)):
-            moves.append(self.move_str((x, y), (x, y + dy)))
-
-        for dx in (-1, 1):
-            if self.is_valid(x + dx, y + dy) and self.is_enemy(self.get_piece(x + dx, y + dy)):
-                moves.append(self.move_str((x, y), (x + dx, y + dy)))
-
-        return moves
-
-    def _king_moves(self, x, y):
-        moves = []
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                if dx == dy == 0:  # not moving
-                    continue
-                elif not self.is_valid(x + dx, y + dy):  # off the board
-                    continue
-                elif not self.is_own(self.get_piece(x + dx, y + dy)):  # empty or take-able
-                    moves.append(self.move_str((x, y), (x + dx, y + dy)))
-        return moves
-
-    def _knight_moves(self, x, y):
-        coords = [
-            (1, 2), (1, -2), (-1, 2), (-1, -2),
-            (2, 1), (2, -1), (-2, 1), (-2, -1),
-        ]
-        moves = []
-
-        for dx, dy in coords:
-            if self.is_valid(x + dx, y + dy) and not self.is_own(self.get_piece(x + dx, y + dy)):
-                moves.append(self.move_str((x, y), (x + dx, y + dy)))
-        return moves
-
-    def _extend_direction(self, x, y, dx, dy):
-        i = 1
-        while self.is_valid(x + (dx * i), y + (dy * i)):
-            yield i, self.get_piece(x + (dx * i), y + (dy * i))
-            i += 1
-
-    def _rook_moves(self, x, y):
-        coords = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-        moves = []
-
-        for dx, dy in coords:
-            for i, piece in self._extend_direction(x, y, dx, dy):
-                if not self.is_own(piece):
-                    moves.append(self.move_str((x, y), (x+(dx*i), y+(dy*i))))
-                    if self.is_enemy(piece):
-                        break
-                else:
-                    break
-        return moves
-
-    def _queen_moves(self, x, y):
-        return list(set(self._rook_moves(x, y)) | set(self._bishop_moves(x, y)))
-
-    def _bishop_moves(self, x, y):
-        diags = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
-        shifts = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-
-        moves = []
-
-        for dx, dy in diags:
-            for i, piece in self._extend_direction(x, y, dx, dy):
-                if self.is_own(piece):
-                    break
-                else:
-                    moves.append(self.move_str((x, y), (x+(dx*i), y+(dy*i))))
-                    if self.is_enemy(piece):
-                        break
-
-        for dx, dy in shifts:
-            if self.is_valid(x + dx, y + dy) and self.is_nothing(self.get_piece(x + dx, y + dy)):
-                moves.append(self.move_str((x, y), (x + dx, y + dy)))
-
-        return moves
+                    moves.update(finder.moves(x, y))
+        return list(moves)
 
     def undo(self):
         if self.history:
@@ -296,17 +211,123 @@ class BoardState(object):
         self.do_move(move)
         return move
 
-PIECE_VALUES = {
-    'p': 100,
-    'b': 300,
-    'n': 300,
-    'r': 500,
-    'q': 900,
-    'k': 10000,
-}
 
+class MoveFinder(object):
 
-PIECES = {
-    'W': {'P', 'R', 'N', 'B', 'Q', 'K'},
-    'B': {'k', 'q', 'b', 'n', 'r', 'p'},
-}
+    def __init__(self, board):
+        """
+        :type board: BoardState
+        """
+        self.board = board
+
+    def get_piece(self, x, y):
+        return self.board.get_piece(x, y)
+
+    def xy_to_alnum(self, x, y):
+        return self.board.xy_to_alnum(x, y)
+
+    def is_valid(self, x, y):
+        return self.board.is_valid(x, y)
+
+    def is_nothing(self, piece):
+        return self.board.is_nothing(piece)
+
+    def is_enemy(self, piece):
+        return self.board.is_enemy(piece)
+
+    def is_own(self, piece):
+        return self.board.is_own(piece)
+
+    def moves(self, x, y):
+        piece = self.get_piece(x, y).lower()
+        if piece == 'p':
+            moves_iter = self._pawn_moves(x, y)
+        elif piece == 'k':
+            moves_iter = self._king_moves(x, y)
+        elif piece == 'n':
+            moves_iter = self._knight_moves(x, y)
+        elif piece == 'r':
+            moves_iter = self._rook_moves(x, y)
+        elif piece == 'q':
+            moves_iter = self._queen_moves(x, y)
+        elif piece == 'b':
+            moves_iter = self._bishop_moves(x, y)
+        else:
+            moves_iter = []
+
+        for m in moves_iter:
+            yield m
+
+    def move_str(self, start, dest):
+        return '{}-{}\n'.format(self.xy_to_alnum(*start), self.xy_to_alnum(*dest))
+
+    def _pawn_moves(self, x, y):
+        dy = self.board.fwd_factor
+
+        if self.is_valid(x, y + dy) and self.is_nothing(self.get_piece(x, y + dy)):
+            yield self.move_str((x, y), (x, y + dy))
+
+        for dx in (-1, 1):
+            if self.is_valid(x + dx, y + dy) and self.is_enemy(self.get_piece(x + dx, y + dy)):
+                yield self.move_str((x, y), (x + dx, y + dy))
+
+    def _king_moves(self, x, y):
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == dy == 0:  # not moving
+                    continue
+                elif not self.is_valid(x + dx, y + dy):  # off the board
+                    continue
+                elif not self.is_own(self.get_piece(x + dx, y + dy)):  # empty or take-able
+                    yield self.move_str((x, y), (x + dx, y + dy))
+
+    def _knight_moves(self, x, y):
+        coords = [
+            (1, 2), (1, -2), (-1, 2), (-1, -2),
+            (2, 1), (2, -1), (-2, 1), (-2, -1),
+        ]
+
+        for dx, dy in coords:
+            if self.is_valid(x + dx, y + dy) and not self.is_own(self.get_piece(x + dx, y + dy)):
+                yield self.move_str((x, y), (x + dx, y + dy))
+
+    def _extend_direction(self, x, y, dx, dy):
+        i = 1
+        while self.is_valid(x + (dx * i), y + (dy * i)):
+            yield i, self.get_piece(x + (dx * i), y + (dy * i))
+            i += 1
+
+    def _rook_moves(self, x, y):
+        coords = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+        for dx, dy in coords:
+            for i, piece in self._extend_direction(x, y, dx, dy):
+                if not self.is_own(piece):
+                    yield self.move_str((x, y), (x + (dx * i), y + (dy * i)))
+                    if self.is_enemy(piece):
+                        break
+                else:
+                    break
+
+    def _queen_moves(self, x, y):
+        for m in self._rook_moves(x, y):
+            yield m
+        for m in self._bishop_moves(x, y):
+            yield m
+
+    def _bishop_moves(self, x, y):
+        diags = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+        shifts = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+        for dx, dy in diags:
+            for i, piece in self._extend_direction(x, y, dx, dy):
+                if self.is_own(piece):
+                    break
+                else:
+                    yield self.move_str((x, y), (x + (dx * i), y + (dy * i)))
+                    if self.is_enemy(piece):
+                        break
+
+        for dx, dy in shifts:
+            if self.is_valid(x + dx, y + dy) and self.is_nothing(self.get_piece(x + dx, y + dy)):
+                yield self.move_str((x, y), (x + dx, y + dy))
