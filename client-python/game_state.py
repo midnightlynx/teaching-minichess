@@ -148,7 +148,9 @@ class BoardState(object):
     def do_move(self, move_str):
 
         # Verify legal move
-        assert move_str in self.moves()
+        moves = self.moves()
+        if move_str not in moves:
+            raise ValueError('"%s" not a valid move\nMoves available: "%s"' % (move_str, moves))
 
         # Parse move string for start/end coordinates
         start, finish = move_str.splitlines()[0].split('-')
@@ -205,14 +207,16 @@ class BoardState(object):
         return [m[1] for m in sorted(evaluated, key=lambda x: x[0])]
 
     def move_random(self):
-        move = self.moves_shuffled()[0]
-        self.do_move(move)
-        return move
+        moves = self.moves_shuffled()
+        if moves:
+            self.do_move(moves[0])
+            return moves[0]
 
     def move_greedy(self):
-        move = self.evaluated_moves()[0]
-        self.do_move(move)
-        return move
+        moves = self.evaluated_moves()
+        if moves:
+            self.do_move(moves[0])
+            return moves[0]
 
 
 class MoveFinder(object):
