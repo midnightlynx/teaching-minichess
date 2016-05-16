@@ -179,6 +179,9 @@ class BoardState(object):
             for x, col in enumerate(row):
                 if self.is_own(col):
                     moves.update(finder.moves(x, y))
+
+        finder.board = None
+        del finder
         return list(moves)
 
     def undo(self):
