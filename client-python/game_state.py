@@ -1,5 +1,4 @@
 from random import shuffle
-from boltons.iterutils import first
 
 PIECE_VALUES = {
     'p': 100,
@@ -131,7 +130,7 @@ class BoardState(object):
                     val += PIECE_VALUES[col.lower()]
                 elif self.is_enemy(col):
                     val -= PIECE_VALUES[col.lower()]
-        return val
+        return max(min(val, 10000), -10000)
 
     def alnum_to_xy(self, alnum):
         x, y = alnum
@@ -257,6 +256,7 @@ class BoardState(object):
             alpha = max(alpha, score)
 
             if alpha >= beta:
+                # print('move=%s alpha=%s beta=%s' % (move.splitlines()[0], alpha, beta))
                 break
 
         return score
@@ -269,12 +269,15 @@ class BoardState(object):
         for move in self.evaluated_moves():
             self.do_move(move)
             temp = -self.alphabeta(depth - 1, -beta, -alpha)
+            # nm_score = -self.negamax(depth - 1)
+            # if nm_score != temp:
+            #     print('mv=%s ab=%s nm=%s' % (move.splitlines()[0], temp, nm_score))
             self.undo()
 
             if temp > alpha:
                 best = move
                 alpha = temp
-
+        print('score=%s move=%s' % (alpha, best))
         return best
 
 
