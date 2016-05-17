@@ -1,4 +1,5 @@
 from random import shuffle
+from boltons.iterutils import first
 
 PIECE_VALUES = {
     'p': 100,
@@ -207,16 +208,74 @@ class BoardState(object):
         return [m[1] for m in sorted(evaluated, key=lambda x: x[0])]
 
     def move_random(self):
-        moves = self.moves_shuffled()
-        if moves:
-            self.do_move(moves[0])
-            return moves[0]
+        for move in self.moves_shuffled():
+            self.do_move(move)
+            return move
 
     def move_greedy(self):
-        moves = self.evaluated_moves()
-        if moves:
-            self.do_move(moves[0])
-            return moves[0]
+        for move in self.evaluated_moves():
+            self.do_move(move)
+            return move
+
+    def negamax(self, depth):
+        if depth == 0 or self.winner() != '?':
+            return self.eval()
+
+        score = -99999
+        for move in self.moves_shuffled():
+            self.do_move(move)
+            score = max(score, -self.negamax(depth - 1))
+            self.undo()
+
+        return score
+
+    def move_negamax(self, depth):
+        best = ''
+        score = -99999
+
+        for move in self.moves_shuffled():
+            self.do_move(move)
+            temp = -self.negamax(depth - 1)
+            self.undo()
+
+            if temp > score:
+                best = move
+                score = temp
+
+        return best
+
+    def alphabeta(self, depth, alpha, beta):
+        if depth == 0 or self.winner() != '?':
+            return self.eval()
+
+        score = -99999
+        for move in self.evaluated_moves():
+            self.do_move(move)
+            score = max(score, -self.alphabeta(depth - 1, -beta, -alpha))
+            self.undo()
+
+            alpha = max(alpha, score)
+
+            if alpha >= beta:
+                break
+
+        return score
+
+    def move_alphabeta(self, depth):
+        best = ''
+        alpha = -99999
+        beta = 99999
+
+        for move in self.evaluated_moves():
+            self.do_move(move)
+            temp = -self.alphabeta(depth - 1, -beta, -alpha)
+            self.undo()
+
+            if temp > alpha:
+                best = move
+                alpha = temp
+
+        return best
 
 
 class MoveFinder(object):

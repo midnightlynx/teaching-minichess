@@ -77,15 +77,13 @@ def chess_moveGreedy():
 def chess_moveNegamax(intDepth, intDuration):
     # perform a negamax move and return it - one example output is given below -
     # note that you can call the the other functions in here
-
-    return 'a2-a3\n'
+    return board_state.do_move(board_state.move_negamax(intDepth))
 
 
 def chess_moveAlphabeta(intDepth, intDuration):
     # perform a alphabeta move and return it - one example output is given below -
     # note that you can call the the other functions in here
-
-    return 'a2-a3\n'
+    return board_state.do_move(board_state.move_alphabeta(intDepth))
 
 
 def chess_undo():
