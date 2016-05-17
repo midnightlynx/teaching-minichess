@@ -277,7 +277,7 @@ class BoardState(object):
             if temp > alpha:
                 best = move
                 alpha = temp
-        print('score=%s move=%s' % (alpha, best))
+        # print('score=%s move=%s' % (alpha, best))
         return best
 
 
