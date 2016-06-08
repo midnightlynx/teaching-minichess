@@ -145,6 +145,12 @@ class BoardState(object):
     def set_piece(self, x, y, piece):
         self.board[y][x] = piece
 
+    def parse_move(self, move_str):
+        start, finish = move_str.splitlines()[0].split('-')
+        s_x, s_y = self.alnum_to_xy(start)
+        e_x, e_y = self.alnum_to_xy(finish)
+        return s_x, s_y, e_x, e_y
+
     def do_move(self, move_str):
 
         # Verify legal move
@@ -153,11 +159,13 @@ class BoardState(object):
             raise ValueError('"%s" not a valid move\nMoves available: "%s"' % (move_str, moves))
 
         # Parse move string for start/end coordinates
-        start, finish = move_str.splitlines()[0].split('-')
-        s_x, s_y = self.alnum_to_xy(start)
-        e_x, e_y = self.alnum_to_xy(finish)
+        s_x, s_y, e_x, e_y = self.parse_move(move_str)
 
         piece = self.get_piece(s_x, s_y)
+        other = self.get_piece(e_x, e_y)
+
+        # Back up board state
+        self.history.append((s_x, s_y, e_x, e_y, piece, other))
 
         # Queenify pawns
         if e_y == 0 and piece == 'P':
@@ -165,8 +173,6 @@ class BoardState(object):
         elif e_y == 5 and piece == 'p':
             piece = 'q'
 
-        # Back up board state
-        self.history.append(self.get_board())
         # Set new piece positions, update board state
         self.set_piece(e_x, e_y, piece)
         self.set_piece(s_x, s_y, '.')
@@ -188,7 +194,12 @@ class BoardState(object):
 
     def undo(self):
         if self.history:
-            self.set_board(self.history.pop())
+            s_x, s_y, e_x, e_y, piece, other = self.history.pop()
+            self.set_piece(e_x, e_y, other)
+            self.set_piece(s_x, s_y, piece)
+            self.player = self.opponent
+            if self.player == 'B':
+                self.turn -= 1
 
     def moves_shuffled(self):
         moves = self.moves()
