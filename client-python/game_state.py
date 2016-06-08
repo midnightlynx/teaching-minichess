@@ -1,4 +1,5 @@
 from random import shuffle
+from time import time
 
 PIECE_VALUES = {
     'p': 100,
@@ -15,14 +16,19 @@ PIECES = {
 }
 
 
+class Timeout(Exception):
+    pass
+
+
 class BoardState(object):
     # read-only internals
     _players = ['W', 'B']
     _cols = 'abcde'
     _rows = '654321'
     _p_index = _turn = 0
-    board = None
-    history = None
+    board = history = None
+    time_limit = time_counter = 0
+
 
     @property
     def players(self):
@@ -227,8 +233,17 @@ class BoardState(object):
             self.do_move(move)
             return move
 
-    def negamax(self, depth):
-        if depth == 0 or self.winner() != '?':
+    def negamax(self, depth, timed=False):
+
+        if timed:
+            self.time_counter += 1
+            if self.time_counter > 1000:
+                now = time()
+                self.time_counter = 0
+                if (now - self.start) * 1000 >= self.time_limit:
+                    raise Timeout
+
+        if depth <= 0 or self.winner() != '?':
             return self.eval()
 
         score = -99999
@@ -239,18 +254,42 @@ class BoardState(object):
 
         return score
 
-    def move_negamax(self, depth):
+    def move_negamax(self, depth, timed=False):
         best = ''
         score = -99999
 
         for move in self.moves_shuffled():
             self.do_move(move)
-            temp = -self.negamax(depth - 1)
+            temp = -self.negamax(depth - 1, timed=timed)
             self.undo()
 
             if temp > score:
                 best = move
                 score = temp
+
+        return best
+
+    def timed_negamax(self, depth, duration):
+
+        if depth > 0:
+            return self.move_negamax(depth)
+
+        num_moves = (41 - self.turn)*2
+        self.time_limit = duration/num_moves - 1
+        self.time_counter = 0
+        best = ''
+        depth = 1
+        self.start = time()
+        try:
+            while True:
+                best = self.move_negamax(depth, timed=True)
+                depth += 1
+        except Timeout:
+            pass
+
+        self.start = 0
+        self.time_limit = 0
+        self.time_counter = 0
 
         return best
 
