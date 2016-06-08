@@ -1,6 +1,8 @@
 from random import shuffle
 from time import time
 
+COUNTER_MOD = 10
+
 PIECE_VALUES = {
     'p': 100,
     'b': 300,
@@ -27,7 +29,7 @@ class BoardState(object):
     _rows = '654321'
     _p_index = _turn = 0
     board = history = None
-    time_limit = time_counter = 0
+    start = time_limit = time_counter = cached_time = 0
 
 
     @property
@@ -233,15 +235,18 @@ class BoardState(object):
             self.do_move(move)
             return move
 
+    def check_time(self):
+        self.time_counter += 1
+        if self.time_counter % COUNTER_MOD == 0:
+            self.cached_time = (time() - self.start) * 1000
+            if self.cached_time >= self.time_limit:
+                raise Timeout
+        return self.cached_time
+
     def negamax(self, depth, timed=False):
 
         if timed:
-            self.time_counter += 1
-            if self.time_counter > 1000:
-                now = time()
-                self.time_counter = 0
-                if (now - self.start) * 1000 >= self.time_limit:
-                    raise Timeout
+            self.check_time()
 
         if depth <= 0 or self.winner() != '?':
             return self.eval()
@@ -249,8 +254,12 @@ class BoardState(object):
         score = -99999
         for move in self.moves_shuffled():
             self.do_move(move)
-            score = max(score, -self.negamax(depth - 1))
-            self.undo()
+            try:
+                score = max(score, -self.negamax(depth - 1, timed=timed))
+                self.undo()
+            except Timeout:
+                self.undo()
+                raise
 
         return score
 
@@ -259,9 +268,16 @@ class BoardState(object):
         score = -99999
 
         for move in self.moves_shuffled():
+            if timed:
+                self.check_time()
+
             self.do_move(move)
-            temp = -self.negamax(depth - 1, timed=timed)
-            self.undo()
+            try:
+                temp = -self.negamax(depth - 1, timed=timed)
+                self.undo()
+            except Timeout:
+                self.undo()
+                raise
 
             if temp > score:
                 best = move
@@ -269,28 +285,35 @@ class BoardState(object):
 
         return best
 
+    def setup_timed(self, duration):
+        self.time_limit = max(float(duration)/((41 - self.turn) * 2) - 10, 1)
+        self.time_counter = self.cached_time = 0
+        self.start = time()
+
+    def cleanup_timed(self):
+        self.time_limit = self.time_counter = self.cached_time = self.start = 0
+
     def timed_negamax(self, depth, duration):
 
         if depth > 0:
             return self.move_negamax(depth)
 
-        num_moves = (41 - self.turn)*2
-        self.time_limit = duration/num_moves - 1
-        self.time_counter = 0
         best = ''
         depth = 1
-        self.start = time()
+
+        self.setup_timed(duration)
         try:
             while True:
                 best = self.move_negamax(depth, timed=True)
+                print('depth: {}, best: {}, counter: {}'.format(depth, best.strip(), self.time_counter))
                 depth += 1
         except Timeout:
             pass
 
-        self.start = 0
-        self.time_limit = 0
-        self.time_counter = 0
-
+        print(self.time_limit)
+        print(self.cached_time)
+        print((time() - self.start) * 1000)
+        self.cleanup_timed()
         return best
 
     def alphabeta(self, depth, alpha, beta):
