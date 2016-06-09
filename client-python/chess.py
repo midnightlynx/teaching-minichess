@@ -85,7 +85,7 @@ def chess_moveNegamax(intDepth, intDuration):
 def chess_moveAlphabeta(intDepth, intDuration):
     # perform a alphabeta move and return it - one example output is given below -
     # note that you can call the the other functions in here
-    move = board_state.move_alphabeta(intDepth)
+    move = board_state.timed_alphabeta(intDepth, intDuration)
     board_state.do_move(move)
     return move
 
