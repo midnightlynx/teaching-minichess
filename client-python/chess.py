@@ -77,7 +77,7 @@ def chess_moveGreedy():
 def chess_moveNegamax(intDepth, intDuration):
     # perform a negamax move and return it - one example output is given below -
     # note that you can call the the other functions in here
-    move = board_state.move_negamax(intDepth)
+    move = board_state.timed_negamax(intDepth, intDuration)
     board_state.do_move(move)
     return move
 
