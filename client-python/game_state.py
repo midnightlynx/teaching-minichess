@@ -1,7 +1,7 @@
 from random import shuffle
 from time import time
 
-COUNTER_MOD = 10
+COUNTER_MOD = 25
 
 PIECE_VALUES = {
     'p': 100,
@@ -298,33 +298,39 @@ class BoardState(object):
         if depth > 0:
             return self.move_negamax(depth)
 
-        best = ''
-        depth = 1
-
+        best = self.move_negamax(1)
+        depth = 2
         self.setup_timed(duration)
         try:
             while True:
                 best = self.move_negamax(depth, timed=True)
-                print('depth: {}, best: {}, counter: {}'.format(depth, best.strip(), self.time_counter))
                 depth += 1
         except Timeout:
             pass
 
-        print(self.time_limit)
-        print(self.cached_time)
-        print((time() - self.start) * 1000)
         self.cleanup_timed()
         return best
 
-    def alphabeta(self, depth, alpha, beta):
+    def alphabeta(self, depth, alpha, beta, timed=False):
+
+        if timed:
+            self.check_time()
+
         if depth == 0 or self.winner() != '?':
             return self.eval()
 
         score = -99999
         for move in self.evaluated_moves():
+            if timed:
+                self.check_time()
+
             self.do_move(move)
-            score = max(score, -self.alphabeta(depth - 1, -beta, -alpha))
-            self.undo()
+            try:
+                score = max(score, -self.alphabeta(depth - 1, -beta, -alpha))
+                self.undo()
+            except Timeout:
+                self.undo()
+                raise
 
             alpha = max(alpha, score)
 
@@ -334,23 +340,48 @@ class BoardState(object):
 
         return score
 
-    def move_alphabeta(self, depth):
+    def move_alphabeta(self, depth, timed=False):
         best = ''
         alpha = -99999
         beta = 99999
 
         for move in self.evaluated_moves():
+            if timed:
+                self.check_time()
             self.do_move(move)
-            temp = -self.alphabeta(depth - 1, -beta, -alpha)
-            # nm_score = -self.negamax(depth - 1)
-            # if nm_score != temp:
-            #     print('mv=%s ab=%s nm=%s' % (move.splitlines()[0], temp, nm_score))
-            self.undo()
+            try:
+                temp = -self.alphabeta(depth - 1, -beta, -alpha, timed=timed)
+                self.undo()
+            except Timeout:
+                self.undo()
+                raise
 
             if temp > alpha:
                 best = move
                 alpha = temp
         # print('score=%s move=%s' % (alpha, best))
+        return best
+
+    def timed_alphabeta(self, depth, duration):
+        if depth > 0:
+            return self.move_alphabeta(depth)
+
+        best = self.move_alphabeta(1)
+        depth = 2
+        self.setup_timed(duration)
+        try:
+            while True:
+                best = self.move_alphabeta(depth, timed=True)
+                print('best: {}, depth: {}, counter: {}'.format(best, depth, self.time_counter))
+                depth += 1
+        except Timeout:
+            pass
+
+        print(self.time_counter)
+        print(self.time_limit)
+        print(self.cached_time)
+        print((time() - self.start) * 1000)
+        self.cleanup_timed()
         return best
 
 
