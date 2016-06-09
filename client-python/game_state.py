@@ -268,8 +268,6 @@ class BoardState(object):
         score = -99999
 
         for move in self.moves_shuffled():
-            if timed:
-                self.check_time()
 
             self.do_move(move)
             try:
@@ -321,12 +319,9 @@ class BoardState(object):
 
         score = -99999
         for move in self.evaluated_moves():
-            if timed:
-                self.check_time()
-
             self.do_move(move)
             try:
-                score = max(score, -self.alphabeta(depth - 1, -beta, -alpha))
+                score = max(score, -self.alphabeta(depth - 1, -beta, -alpha, timed=timed))
                 self.undo()
             except Timeout:
                 self.undo()
@@ -346,8 +341,6 @@ class BoardState(object):
         beta = 99999
 
         for move in self.evaluated_moves():
-            if timed:
-                self.check_time()
             self.do_move(move)
             try:
                 temp = -self.alphabeta(depth - 1, -beta, -alpha, timed=timed)
