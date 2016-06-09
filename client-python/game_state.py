@@ -284,7 +284,7 @@ class BoardState(object):
         return best
 
     def setup_timed(self, duration):
-        self.time_limit = max(float(duration)/((41 - self.turn) * 2) - 10, 1)
+        self.time_limit = max(float(duration)/((41 - self.turn) * 2) - 25, 1)
         self.time_counter = self.cached_time = 0
         self.start = time()
 
@@ -365,15 +365,15 @@ class BoardState(object):
         try:
             while True:
                 best = self.move_alphabeta(depth, timed=True)
-                print('best: {}, depth: {}, counter: {}'.format(best, depth, self.time_counter))
+                # print('best: {}, depth: {}, counter: {}'.format(best.strip(), depth, self.time_counter))
                 depth += 1
         except Timeout:
             pass
 
-        print(self.time_counter)
-        print(self.time_limit)
-        print(self.cached_time)
-        print((time() - self.start) * 1000)
+        # print(self.time_counter)
+        # print(self.time_limit)
+        # print(self.cached_time)
+        # print((time() - self.start) * 1000)
         self.cleanup_timed()
         return best
 
